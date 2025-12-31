@@ -7,6 +7,7 @@ import time
 
 from clients import KalshiClient
 from models import Market, Order, Position
+from tracker import TradeTracker
 
 
 class Strategy(ABC):
@@ -34,6 +35,9 @@ class Strategy(ABC):
         self._daily_risk = 0.0
         self._orders_placed: list[Order] = []
         self._start_time: Optional[datetime] = None
+
+        # Trade tracking
+        self.tracker = TradeTracker()
 
     # Lifecycle hooks
 
@@ -151,6 +155,14 @@ class Strategy(ABC):
         self._daily_risk += cost
         self._orders_placed.append(order)
         self.log(f"Placed: {side.upper()} {contracts}x {ticker} @ {price}¢ (order {order.id})")
+
+        # Record trade for tracking
+        self.tracker.record_trade(
+            ticker=ticker,
+            contracts=contracts,
+            price=price,
+            side=side,
+        )
 
         return order
 

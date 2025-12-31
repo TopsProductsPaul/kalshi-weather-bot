@@ -6,6 +6,7 @@ Usage:
     python main.py              # Dry run, single pass
     python main.py --live       # Live trading, single pass
     python main.py --live --run # Live trading, continuous
+    python main.py --check      # Check settlements and show P&L report
 """
 
 import argparse
@@ -21,6 +22,7 @@ from config import (
 )
 from clients import KalshiClient, NWSClient
 from strategy import WeatherBotStrategy
+from tracker import check_and_report
 
 
 def main():
@@ -30,6 +32,7 @@ def main():
     parser.add_argument("--duration", type=int, help="Run duration in minutes (with --run)")
     parser.add_argument("--cities", nargs="+", help="Cities to trade (default: NYC)")
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
+    parser.add_argument("--check", action="store_true", help="Check settlements and show P&L report")
 
     args = parser.parse_args()
 
@@ -48,6 +51,12 @@ def main():
         env=KALSHI_ENV,
         verbose=args.verbose,
     )
+
+    # Handle --check mode (settlement checking only)
+    if args.check:
+        check_and_report(kalshi)
+        kalshi.close()
+        return
 
     nws = NWSClient(verbose=args.verbose)
 
