@@ -16,10 +16,10 @@ KALSHI_ENV = os.getenv("KALSHI_ENV", "demo")  # "demo" or "prod"
 
 # Trading parameters
 class TradingConfig:
-    # Position sizing
-    BASE_POSITION_SIZE = 2       # contracts per trade
-    MAX_POSITION_PER_MARKET = 10  # max contracts in single market
-    MAX_DAILY_RISK = 50.0         # max $ at risk per day
+    # Position sizing (conservative for testing)
+    BASE_POSITION_SIZE = 3        # contracts per trade (small bets)
+    MAX_POSITION_PER_MARKET = 20  # max contracts in single market
+    MAX_DAILY_RISK = 10.0         # max $ at risk per day (hard cap)
 
     # Edge thresholds
     MIN_EDGE_THRESHOLD = 0.05     # 5% minimum edge to trade
