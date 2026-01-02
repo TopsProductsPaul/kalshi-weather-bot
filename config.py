@@ -13,21 +13,23 @@ KALSHI_API_KEY_ID = os.getenv("KALSHI_API_KEY_ID")
 KALSHI_PRIVATE_KEY_PATH = os.getenv("KALSHI_PRIVATE_KEY_PATH", "./kalshi_private_key.pem")
 KALSHI_ENV = os.getenv("KALSHI_ENV", "demo")  # "demo" or "prod"
 
+# xAI API (for Grok models)
+XAI_API_KEY = os.getenv("XAI_API_KEY")
+
 
 # Trading parameters
 class TradingConfig:
-    # Position sizing (conservative for testing)
-    BASE_POSITION_SIZE = 3        # contracts per trade (small bets)
-    MAX_POSITION_PER_MARKET = 20  # max contracts in single market
-    MAX_DAILY_RISK = 10.0         # max $ at risk per day (hard cap)
+    # Bucket spread strategy
+    MIN_BUCKET_PRICE = 10         # Don't buy below 10¢ (too unlikely)
+    MAX_BUCKET_PRICE = 60         # Allow up to 60¢ (peaks are 35-57¢)
+    MAX_BUCKETS = 2               # Prevents >100¢ cost
+    MAX_TOTAL_COST = 95           # Safety cap in cents
+    CONTRACTS_PER_BUCKET = 10     # Fixed size per bucket
+    USE_LIMIT_ORDERS = True       # Buy at bid, not ask
+    MAX_DAILY_COST = 100          # Total $ to deploy per day
 
-    # Edge thresholds
-    MIN_EDGE_THRESHOLD = 0.05     # 5% minimum edge to trade
-    MIN_YES_PRICE = 10            # don't buy YES below 10¢
-    MAX_YES_PRICE = 50            # don't buy YES above 50¢
-
-    # Cities to trade (start with one)
-    CITIES = ["NYC"]
+    # Cities (LA and Chicago have better spreads)
+    CITIES = ["NYC", "LA", "CHICAGO", "MIAMI"]
 
     # Timing
     CHECK_INTERVAL = 300          # seconds between checks (5 min)
