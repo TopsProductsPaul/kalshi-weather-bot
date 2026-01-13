@@ -17,6 +17,13 @@ from errors import KalshiAPIError, AuthenticationError, MarketNotFound, Insuffic
 PROD_URL = "https://api.elections.kalshi.com"
 DEMO_URL = "https://demo-api.kalshi.co"
 
+# Series tickers for crypto markets
+CRYPTO_SERIES = {
+    "BTC_15M": "KXBTC15M",
+    "SOL_DAILY": "KXSOLD",
+    "DOGE_DAILY": "KXDOGED",
+}
+
 # City codes for weather markets
 CITY_CODES = {
     "NYC": "NY",
@@ -370,3 +377,85 @@ class KalshiClient(BaseClient):
             "cancelled": OrderStatus.CANCELLED,
         }
         return status_map.get(status.lower(), OrderStatus.PENDING)
+
+    # Crypto market methods
+
+    def get_btc_15m_markets(self, status: str = None) -> list[dict]:
+        """
+        Get BTC 15-minute up/down markets.
+
+        Args:
+            status: Market status filter (None for all, or specific status)
+
+        Returns:
+            List of market dicts with ticker, close_time, yes_bid, yes_ask, etc.
+        """
+        params = {"series_ticker": CRYPTO_SERIES["BTC_15M"], "limit": 100}
+        if status:
+            params["status"] = status
+
+        try:
+            data = self._get("/trade-api/v2/markets", params=params)
+            return data.get("markets", [])
+        except Exception:
+            # Fallback without status filter
+            try:
+                data = self._get(
+                    "/trade-api/v2/markets",
+                    params={"series_ticker": CRYPTO_SERIES["BTC_15M"], "limit": 100}
+                )
+                return data.get("markets", [])
+            except Exception:
+                return []
+
+    def get_active_btc_market(self) -> Optional[dict]:
+        """
+        Get the currently active BTC 15-minute market.
+
+        Returns:
+            Market dict if there's an active market, None otherwise.
+        """
+        # Get open markets
+        markets = self.get_btc_15m_markets(status="open")
+        for m in markets:
+            yes_bid = m.get("yes_bid") or 0
+            yes_ask = m.get("yes_ask") or 100
+            # Market has liquidity if there's a spread
+            if yes_bid > 0 or yes_ask < 100:
+                return m
+
+        # Also try without status filter (gets all)
+        try:
+            data = self._get(
+                "/trade-api/v2/markets",
+                params={"series_ticker": CRYPTO_SERIES["BTC_15M"], "limit": 20}
+            )
+            markets = data.get("markets", [])
+            for m in markets:
+                if m.get("status") == "open":
+                    yes_bid = m.get("yes_bid") or 0
+                    yes_ask = m.get("yes_ask") or 100
+                    if yes_bid > 0 or yes_ask < 100:
+                        return m
+        except Exception:
+            pass
+
+        return None
+
+    def get_crypto_markets(self, series: str, status: str = "open") -> list[dict]:
+        """
+        Get markets for a crypto series.
+
+        Args:
+            series: Series key from CRYPTO_SERIES (e.g., "BTC_15M", "SOL_DAILY")
+            status: Market status filter
+
+        Returns:
+            List of market dicts
+        """
+        series_ticker = CRYPTO_SERIES.get(series, series)
+        data = self._get(
+            "/trade-api/v2/markets",
+            params={"series_ticker": series_ticker, "status": status, "limit": 100}
+        )
+        return data.get("markets", [])

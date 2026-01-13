@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.kalshi.btcbot</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/paulkopyto/Desktop/PERSONAL/kalshi-weather-bot/venv/bin/python3</string>
+        <string>-u</string>
+        <string>/Users/paulkopyto/Desktop/PERSONAL/kalshi-weather-bot/btc_main.py</string>
+        <string>--live</string>
+        <string>--run</string>
+        <string>--interval</string>
+        <string>30</string>
+        <string>--contracts</string>
+        <string>1</string>
+        <string>--min-change</string>
+        <string>0.03</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/paulkopyto/Desktop/PERSONAL/kalshi-weather-bot</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/paulkopyto/Desktop/PERSONAL/kalshi-weather-bot/btc_bot.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/paulkopyto/Desktop/PERSONAL/kalshi-weather-bot/btc_bot_error.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+</dict>
+</plist>
