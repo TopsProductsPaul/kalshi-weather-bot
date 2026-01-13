@@ -20,7 +20,7 @@ from config import (
     TradingConfig,
     validate_config,
 )
-from clients import KalshiClient, NWSClient
+from clients import KalshiClient
 from strategy import WeatherBotStrategy
 from tracker import check_and_report
 
@@ -58,8 +58,6 @@ def main():
         kalshi.close()
         return
 
-    nws = NWSClient(verbose=args.verbose)
-
     # Check balance
     balance = kalshi.get_balance()
     print(f"Account balance: ${balance:.2f}")
@@ -73,22 +71,19 @@ def main():
 
     print(f"\nMode: {'LIVE TRADING' if args.live else 'DRY RUN'}")
     print(f"Cities: {cities}")
-    print(f"Min edge: {TradingConfig.MIN_EDGE_THRESHOLD * 100:.0f}%")
-    print(f"Max daily risk: ${TradingConfig.MAX_DAILY_RISK:.0f}")
+    print(f"Max buckets: {TradingConfig.MAX_BUCKETS}")
+    print(f"Max cost per spread: {TradingConfig.MAX_TOTAL_COST}¢")
+    print(f"Max daily spend: ${TradingConfig.MAX_DAILY_COST:.0f}")
     print()
 
     # Create and run strategy
     bot = WeatherBotStrategy(
         kalshi=kalshi,
-        nws=nws,
         cities=cities,
-        min_edge=TradingConfig.MIN_EDGE_THRESHOLD,
-        min_price=TradingConfig.MIN_YES_PRICE,
-        max_price=TradingConfig.MAX_YES_PRICE,
-        base_contracts=TradingConfig.BASE_POSITION_SIZE,
+        base_contracts=TradingConfig.CONTRACTS_PER_BUCKET,
         dry_run=dry_run,
         check_interval=TradingConfig.CHECK_INTERVAL,
-        max_daily_risk=TradingConfig.MAX_DAILY_RISK,
+        max_daily_risk=TradingConfig.MAX_DAILY_COST,
     )
 
     if args.run:

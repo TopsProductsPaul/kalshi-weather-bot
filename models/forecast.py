@@ -1,4 +1,8 @@
-"""Weather forecast data models."""
+"""Weather forecast data models.
+
+NOTE: These models are from the original forecast-based strategy.
+Kept for reference but not used by bucket spread strategy.
+"""
 
 from dataclasses import dataclass, field
 from datetime import datetime
