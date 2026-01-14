@@ -72,11 +72,14 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
 
     # Strategy parameters
-    parser.add_argument("--confidence", type=float, default=0.80, help="Min confidence to bet (0-1, default: 0.80)")
-    parser.add_argument("--window", type=int, default=3, help="Only bet in last N minutes (default: 3)")
-    parser.add_argument("--min-change", type=float, default=0.1, help="Min %% price change (default: 0.1)")
+    parser.add_argument("--confidence", type=float, default=0.65, help="Min confidence to bet (0-1, default: 0.65)")
+    parser.add_argument("--window", type=int, default=10, help="Start betting N minutes before close (default: 10)")
+    parser.add_argument("--min-window", type=int, default=2, help="Stop betting N minutes before close (default: 2)")
+    parser.add_argument("--min-change", type=float, default=0.05, help="Min %% price change (default: 0.05)")
     parser.add_argument("--max-price", type=int, default=95, help="Max price to pay in cents (default: 95)")
-    parser.add_argument("--contracts", type=int, default=10, help="Contracts per bet (default: 10)")
+    parser.add_argument("--contracts", type=int, default=10, help="Max contracts per bet (default: 10)")
+    parser.add_argument("--min-contracts", type=int, default=2, help="Min contracts per bet (default: 2)")
+    parser.add_argument("--no-scale", action="store_true", help="Disable confidence-based position scaling")
 
     args = parser.parse_args()
 
@@ -114,10 +117,13 @@ def main():
 
     print(f"\nMode: {'LIVE TRADING' if args.live else 'DRY RUN'}")
     print(f"Min confidence: {args.confidence:.0%}")
-    print(f"Bet window: last {args.window} minutes")
+    print(f"Bet window: {args.window}-{args.min_window} minutes before close")
     print(f"Min price change: {args.min_change}%")
     print(f"Max price: {args.max_price}¢")
-    print(f"Contracts per bet: {args.contracts}")
+    if args.no_scale:
+        print(f"Contracts per bet: {args.contracts}")
+    else:
+        print(f"Contracts: {args.min_contracts}-{args.contracts} (scaled by confidence)")
     print()
 
     # Create and run strategy
@@ -125,9 +131,12 @@ def main():
         kalshi=kalshi,
         min_confidence=args.confidence,
         max_minutes_before_close=args.window,
+        min_minutes_before_close=args.min_window,
         min_price_change_pct=args.min_change,
         max_price=args.max_price,
         contracts_per_bet=args.contracts,
+        min_contracts=args.min_contracts,
+        scale_by_confidence=not args.no_scale,
         dry_run=dry_run,
         check_interval=args.interval,
         max_daily_risk=100.0,

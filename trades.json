@@ -76,5 +76,83 @@
     "result": null,
     "payout": 0.0,
     "pnl": 0.0
+  },
+  {
+    "ticker": "KXBTC15M-26JAN131245-45",
+    "contracts": 2,
+    "price": 6,
+    "side": "sell",
+    "placed_at": "2026-01-13T12:42:37.985539",
+    "cost": 0.12,
+    "settled": false,
+    "settled_at": null,
+    "result": null,
+    "payout": 0.0,
+    "pnl": 0.0
+  },
+  {
+    "ticker": "KXBTC15M-26JAN131415-15",
+    "contracts": 2,
+    "price": 30,
+    "side": "sell",
+    "placed_at": "2026-01-13T14:12:20.000725",
+    "cost": 0.6,
+    "settled": false,
+    "settled_at": null,
+    "result": null,
+    "payout": 0.0,
+    "pnl": 0.0
+  },
+  {
+    "ticker": "KXBTC15M-26JAN131530-30",
+    "contracts": 2,
+    "price": 42,
+    "side": "sell",
+    "placed_at": "2026-01-13T15:27:30.104340",
+    "cost": 0.84,
+    "settled": false,
+    "settled_at": null,
+    "result": null,
+    "payout": 0.0,
+    "pnl": 0.0
+  },
+  {
+    "ticker": "KXBTC15M-26JAN132345-45",
+    "contracts": 2,
+    "price": 13,
+    "side": "sell",
+    "placed_at": "2026-01-13T23:37:07.682967",
+    "cost": 0.26,
+    "settled": false,
+    "settled_at": null,
+    "result": null,
+    "payout": 0.0,
+    "pnl": 0.0
+  },
+  {
+    "ticker": "KXBTC15M-26JAN140530-30",
+    "contracts": 3,
+    "price": 10,
+    "side": "sell",
+    "placed_at": "2026-01-14T05:23:07.646857",
+    "cost": 0.3,
+    "settled": false,
+    "settled_at": null,
+    "result": null,
+    "payout": 0.0,
+    "pnl": 0.0
+  },
+  {
+    "ticker": "KXBTC15M-26JAN140545-45",
+    "contracts": 5,
+    "price": 93,
+    "side": "buy",
+    "placed_at": "2026-01-14T05:42:15.855435",
+    "cost": 4.65,
+    "settled": false,
+    "settled_at": null,
+    "result": null,
+    "payout": 0.0,
+    "pnl": 0.0
   }
 ]
