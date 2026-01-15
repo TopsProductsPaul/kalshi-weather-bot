@@ -57,16 +57,16 @@ class BTCBotStrategy(Strategy):
 
     def setup(self):
         """Initialize strategy."""
-        self.log("BTC 15M Bot initialized")
-        self.log(f"Min confidence: {self.min_confidence:.0%}")
-        self.log(f"Bet window: {self.max_minutes_before_close}-{self.min_minutes_before_close} minutes before close")
-        self.log(f"Min price change: {self.min_price_change_pct}%")
-        self.log(f"Max price: {self.max_price}¢")
+        self.log("🤖 BTC 15M Bot initialized")
+        self.log(f"📊 Min confidence: {self.min_confidence:.0%}")
+        self.log(f"⏰ Bet window: {self.max_minutes_before_close}-{self.min_minutes_before_close} minutes before close")
+        self.log(f"📈 Min price change: {self.min_price_change_pct}%")
+        self.log(f"💰 Max price: {self.max_price}¢")
         if self.scale_by_confidence:
-            self.log(f"Contracts: {self.min_contracts}-{self.contracts_per_bet} (scaled by confidence)")
+            self.log(f"📦 Contracts: {self.min_contracts}-{self.contracts_per_bet} (scaled by confidence)")
         else:
-            self.log(f"Contracts per bet: {self.contracts_per_bet}")
-        self.log(f"Dry run: {self.dry_run}")
+            self.log(f"📦 Contracts per bet: {self.contracts_per_bet}")
+        self.log(f"🧪 Dry run: {self.dry_run}")
 
     def on_start(self):
         """Log starting status."""
@@ -75,22 +75,22 @@ class BTCBotStrategy(Strategy):
         # Test crypto connection
         btc_price = self.crypto.get_btc_price()
         if btc_price > 0:
-            self.log(f"Current BTC price: ${btc_price:,.2f}")
+            self.log(f"₿ Current BTC price: ${btc_price:,.2f}")
         else:
-            self.log("Warning: Could not fetch BTC price")
+            self.log("⚠️ Warning: Could not fetch BTC price")
 
     def on_tick(self):
         """Main trading logic - check for opportunities."""
         try:
             self._check_btc_markets()
         except Exception as e:
-            self.log(f"Error in on_tick: {e}")
+            self.log(f"❌ Error in on_tick: {e}")
 
     def on_stop(self):
         """Log final status."""
-        self.log("BTC Bot stopping")
+        self.log("🛑 BTC Bot stopping")
         self.log_status()
-        self.log(f"Markets traded: {len(self._traded_markets)}")
+        self.log(f"📊 Markets traded: {len(self._traded_markets)}")
 
     def _check_btc_markets(self):
         """Check BTC 15M markets for opportunities."""
@@ -98,27 +98,28 @@ class BTCBotStrategy(Strategy):
         market = self.kalshi.get_active_btc_market()
 
         if not market:
-            self.log("No active BTC 15M market found")
+            self.log("😴 No active BTC 15M market found")
             return
 
         ticker = market.get("ticker", "")
+
         if ticker in self._traded_markets:
             return  # Already traded this window
 
         # Parse window timing
         window_info = self._parse_window(ticker, market)
         if not window_info:
-            self.log(f"Could not parse window for {ticker}")
+            self.log(f"⚠️ Could not parse window for {ticker}")
             return
 
         start_time, end_time, minutes_left = window_info
 
         # Only trade in the betting window (between max and min minutes before close)
         if minutes_left > self.max_minutes_before_close:
-            self.log(f"{ticker}: {minutes_left:.1f} min left (waiting for {self.max_minutes_before_close} min window)")
+            self.log(f"⏳ {ticker}: {minutes_left:.1f} min left (waiting for {self.max_minutes_before_close} min window)")
             return
         if minutes_left < self.min_minutes_before_close:
-            self.log(f"{ticker}: {minutes_left:.1f} min left (past {self.min_minutes_before_close} min cutoff)")
+            self.log(f"⏰ {ticker}: {minutes_left:.1f} min left (past {self.min_minutes_before_close} min cutoff)")
             return
 
         # Get prices
@@ -126,7 +127,7 @@ class BTCBotStrategy(Strategy):
         current_price = self.crypto.get_btc_price()
 
         if start_price <= 0 or current_price <= 0:
-            self.log("Could not get BTC prices")
+            self.log("❌ Could not get BTC prices")
             return
 
         # Calculate price change
@@ -141,12 +142,14 @@ class BTCBotStrategy(Strategy):
         # Check for momentum
         has_momentum = self._detect_momentum(is_up)
 
-        self.log(f"{ticker}: BTC ${start_price:,.0f} → ${current_price:,.0f} ({price_change_pct:+.2f}%)")
-        self.log(f"  Minutes left: {minutes_left:.1f}, Direction: {'UP' if is_up else 'DOWN'}, Momentum: {has_momentum}")
+        direction_emoji = "🟢" if is_up else "🔴"
+        momentum_emoji = "🚀" if has_momentum else "➖"
+        self.log(f"₿ {ticker}: ${start_price:,.0f} → ${current_price:,.0f} ({price_change_pct:+.2f}%)")
+        self.log(f"  ⏱️ {minutes_left:.1f} min left | {direction_emoji} {'UP' if is_up else 'DOWN'} | {momentum_emoji} Momentum: {has_momentum}")
 
         # Check if outcome is nearly certain
         if abs(price_change_pct) < self.min_price_change_pct:
-            self.log(f"  Price change too small ({abs(price_change_pct):.2f}% < {self.min_price_change_pct}%)")
+            self.log(f"  ⚠️ Price change too small ({abs(price_change_pct):.2f}% < {self.min_price_change_pct}%)")
             return
 
         # Get market prices
@@ -155,19 +158,20 @@ class BTCBotStrategy(Strategy):
         no_bid = 100 - yes_ask  # NO bid = 100 - YES ask
         no_ask = 100 - yes_bid if yes_bid > 0 else 100  # NO ask = 100 - YES bid
 
-        self.log(f"  Market: YES {yes_bid}/{yes_ask}¢ | NO {no_bid}/{no_ask}¢")
+        self.log(f"  💹 Market: YES {yes_bid}/{yes_ask}¢ | NO {no_bid}/{no_ask}¢")
 
         # Calculate our confidence based on price movement, time left, and momentum
         confidence = self._calculate_confidence(price_change_pct, minutes_left, has_momentum)
-        self.log(f"  Confidence: {confidence:.0%}")
+        conf_emoji = "🔥" if confidence >= 0.75 else "📊" if confidence >= self.min_confidence else "❄️"
+        self.log(f"  {conf_emoji} Confidence: {confidence:.0%}")
 
         if confidence < self.min_confidence:
-            self.log(f"  Confidence too low ({confidence:.0%} < {self.min_confidence:.0%})")
+            self.log(f"  ❌ Confidence too low ({confidence:.0%} < {self.min_confidence:.0%})")
             return
 
         # Calculate position size based on confidence
         contracts = self._scale_contracts(confidence)
-        self.log(f"  Position size: {contracts} contracts")
+        self.log(f"  📦 Position size: {contracts} contracts")
 
         # Find the best trade option among all 4 possibilities
         # "BTC up in next 15 mins" = YES means price went up
@@ -204,9 +208,9 @@ class BTCBotStrategy(Strategy):
         sell_no_profit = no_bid  # What we keep if YES wins (NO expires worthless)
         sell_no_risk = 100 - no_bid  # What we lose if NO wins
         
-        self.log(f"  UP Trade Options:")
-        self.log(f"    BUY YES @ {yes_ask}¢ → profit {buy_yes_profit}¢ if YES wins")
-        self.log(f"    SELL NO @ {no_bid}¢ → profit {no_bid}¢ if YES wins (risk {sell_no_risk}¢)")
+        self.log(f"  🟢 UP Trade Options:")
+        self.log(f"    💵 BUY YES @ {yes_ask}¢ → profit {buy_yes_profit}¢ if YES wins")
+        self.log(f"    💵 SELL NO @ {no_bid}¢ → profit {no_bid}¢ if YES wins (risk {sell_no_risk}¢)")
         
         # Prefer BUY YES if price is reasonable
         if buy_yes_cost <= self.max_price:
@@ -217,11 +221,11 @@ class BTCBotStrategy(Strategy):
         # SELL NO makes sense when no_bid > 0 (we receive premium)
         # This is equivalent to betting YES will win when YES price is very high
         if no_bid > 0 and sell_no_risk <= self.max_price:
-            self.log(f"  → YES ask too high ({yes_ask}¢), using SELL NO instead")
+            self.log(f"  ↪️ YES ask too high ({yes_ask}¢), using SELL NO instead")
             self._place_bet(ticker, "sell_no", no_bid, contracts, confidence)
             return True
         
-        self.log(f"  No viable UP trade: YES ask {yes_ask}¢ > max {self.max_price}¢, NO bid {no_bid}¢")
+        self.log(f"  ⛔ No viable UP trade: YES ask {yes_ask}¢ > max {self.max_price}¢, NO bid {no_bid}¢")
         return False
 
     def _execute_best_down_trade(self, ticker: str, yes_bid: int, no_ask: int, contracts: int, confidence: float) -> bool:
@@ -241,9 +245,9 @@ class BTCBotStrategy(Strategy):
         sell_yes_profit = yes_bid  # What we keep if NO wins (YES expires worthless)
         sell_yes_risk = 100 - yes_bid  # What we lose if YES wins
         
-        self.log(f"  DOWN Trade Options:")
-        self.log(f"    BUY NO @ {no_ask}¢ → profit {buy_no_profit}¢ if NO wins")
-        self.log(f"    SELL YES @ {yes_bid}¢ → profit {yes_bid}¢ if NO wins (risk {sell_yes_risk}¢)")
+        self.log(f"  🔴 DOWN Trade Options:")
+        self.log(f"    💵 BUY NO @ {no_ask}¢ → profit {buy_no_profit}¢ if NO wins")
+        self.log(f"    💵 SELL YES @ {yes_bid}¢ → profit {yes_bid}¢ if NO wins (risk {sell_yes_risk}¢)")
         
         # Prefer direct BUY NO (via SELL YES) if price is reasonable
         if buy_no_cost <= self.max_price and yes_bid > 0:
@@ -254,18 +258,18 @@ class BTCBotStrategy(Strategy):
         # SELL YES makes sense when yes_bid > 0 (we receive premium)
         # This captures opportunities where NO is very expensive but YES bid is available
         if yes_bid > 0 and sell_yes_risk <= self.max_price:
-            self.log(f"  → NO ask too high ({no_ask}¢), using SELL YES instead")
+            self.log(f"  ↪️ NO ask too high ({no_ask}¢), using SELL YES instead")
             self._place_bet(ticker, "sell_yes", yes_bid, contracts, confidence)
             return True
         
         # Last resort: if yes_bid is very low (< 5¢), we can sell YES cheaply
         # Risk is high but probability of loss is low given our confidence
         if yes_bid > 0 and yes_bid <= 5 and confidence >= 0.75:
-            self.log(f"  → High confidence ({confidence:.0%}), SELL YES @ {yes_bid}¢ despite high risk")
+            self.log(f"  🎯 High confidence ({confidence:.0%}), SELL YES @ {yes_bid}¢ despite high risk")
             self._place_bet(ticker, "sell_yes", yes_bid, contracts, confidence)
             return True
         
-        self.log(f"  No viable DOWN trade: NO ask {no_ask}¢ > max {self.max_price}¢, YES bid {yes_bid}¢")
+        self.log(f"  ⛔ No viable DOWN trade: NO ask {no_ask}¢ > max {self.max_price}¢, YES bid {yes_bid}¢")
         return False
 
     def _parse_window(self, ticker: str, market: dict) -> Optional[tuple[datetime, datetime, float]]:
@@ -411,7 +415,7 @@ class BTCBotStrategy(Strategy):
                 side="buy",
             )
             if order:
-                self.log(f"  → BUY YES: {contracts}x @ {price}¢ ({confidence:.0%} conf)")
+                self.log(f"  ✅ BUY YES: {contracts}x @ {price}¢ ({confidence:.0%} conf)")
                 
         elif trade_type == "sell_yes":
             # SELL YES - receive yes_bid, keep it if NO wins
@@ -422,7 +426,7 @@ class BTCBotStrategy(Strategy):
                 side="sell",
             )
             if order:
-                self.log(f"  → SELL YES: {contracts}x @ {price}¢ ({confidence:.0%} conf)")
+                self.log(f"  ✅ SELL YES: {contracts}x @ {price}¢ ({confidence:.0%} conf)")
                 
         elif trade_type == "buy_no":
             # BUY NO - on Kalshi this is done by selling YES
@@ -437,7 +441,7 @@ class BTCBotStrategy(Strategy):
                 side="sell",
             )
             if order:
-                self.log(f"  → BUY NO: {contracts}x @ {price}¢ (via SELL YES @ {yes_price}¢) ({confidence:.0%} conf)")
+                self.log(f"  ✅ BUY NO: {contracts}x @ {price}¢ (via SELL YES @ {yes_price}¢) ({confidence:.0%} conf)")
                 
         elif trade_type == "sell_no":
             # SELL NO - on Kalshi this is done by buying YES
@@ -451,7 +455,7 @@ class BTCBotStrategy(Strategy):
                 side="buy",
             )
             if order:
-                self.log(f"  → SELL NO: {contracts}x @ {price}¢ (via BUY YES @ {yes_price}¢) ({confidence:.0%} conf)")
+                self.log(f"  ✅ SELL NO: {contracts}x @ {price}¢ (via BUY YES @ {yes_price}¢) ({confidence:.0%} conf)")
         
         return order
 
